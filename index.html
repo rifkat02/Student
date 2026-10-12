@@ -118,7 +118,6 @@
         .btn-danger { background-color: var(--danger); color: white; }
         .btn-secondary { background-color: #e5e7eb; color: var(--text); }
 
-        /* Элементы списков */
         .list-item {
             padding: 10px;
             border: 1px solid var(--border);
@@ -155,7 +154,6 @@
             font-size: 0.9rem;
         }
 
-        /* Таблицы для коменданта */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -178,8 +176,7 @@
             cursor: pointer;
         }
 
-        /* Модальные окна */
-        .modal, .auth-screen {
+        .auth-screen, .modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg);
@@ -239,15 +236,15 @@
                 <label>Выберите ваш профиль (Студент):</label>
                 <select id="auth-student-select"></select>
             </div>
-            <button class="btn btn-primary" onclick="loginAsStudent()">Войти как студент</button>
+            <button class="btn btn-primary" type="button" onclick="loginAsStudent()">Войти как студент</button>
 
             <div style="margin: 20px 0; text-align: center; font-size: 0.8rem; color: var(--text-sec);">или войти как администрация</div>
 
             <div class="form-group">
                 <label>PIN-код коменданта:</label>
-                <input type="password" id="admin-pin" placeholder="Введите PIN">
+                <input type="password" id="admin-pin" placeholder="Введите PIN (7777)">
             </div>
-            <button class="btn btn-secondary" onclick="loginAsAdmin()">Войти в панель коменданта</button>
+            <button class="btn btn-secondary" type="button" onclick="loginAsAdmin()">Войти в панель коменданта</button>
         </div>
     </div>
 
@@ -255,7 +252,7 @@
     <div id="main-app" class="hidden">
         <header>
             <h1 id="header-title">Общежитие №4</h1>
-            <button class="logout-btn" onclick="logout()">Выйти</button>
+            <button class="logout-btn" type="button" onclick="logout()">Выйти</button>
         </header>
 
         <!-- ЛИЧНЫЙ КАБИНЕТ СТУДЕНТА -->
@@ -268,7 +265,7 @@
                 <div style="margin-top: 10px;">
                     <span class="status-badge" id="s-checkin-status">Отметка сегодня</span>
                 </div>
-                <button class="btn btn-primary" onclick="studentCheckIn()" id="btn-checkin">Отметиться в общежитии</button>
+                <button class="btn btn-primary" type="button" onclick="studentCheckIn()" id="btn-checkin">Отметиться в общежитии</button>
             </div>
 
             <div class="card">
@@ -294,7 +291,7 @@
             </div>
         </div>
 
-        <!-- ЛИЧНЫЙ КАБИНЕТ КОМЕНДАНТА (Скрыт по умолчанию) -->
+        <!-- ЛИЧНЫЙ КАБИНЕТ КОМЕНДАНТА -->
         <div id="view-admin" class="hidden">
             <div class="card">
                 <div class="card-title" style="background:#e0e7ff; padding:8px; border-radius:6px; margin-bottom:12px;">
@@ -302,7 +299,7 @@
                 </div>
                 <div class="card-title">
                     Списки студентов
-                    <button class="btn-primary" style="width:auto; padding:6px 12px; font-size:0.8rem; margin:0;" onclick="openAddStudentModal()">+ Добавить</button>
+                    <button class="btn-primary" type="button" style="width:auto; padding:6px 12px; font-size:0.8rem; margin:0;" onclick="openAddStudentModal()">+ Добавить</button>
                 </div>
                 <div style="overflow-x: auto;">
                     <table>
@@ -325,8 +322,7 @@
             <div id="honor-board-container"></div>
         </div>
 
-        <!-- Скрытая ссылка на вход для коменданта в футере -->
-        <div class="admin-footer-link" onclick="scrollToAuthAdmin()">Вход для администратора / коменданта</div>
+        <div class="admin-footer-link" onclick="logout()">Вход для администратора / коменданта</div>
     </div>
 
     <!-- МОДАЛЬНОЕ ОКНО ДЛЯ ДЕЙСТВИЙ КОМЕНДАНТА -->
@@ -338,8 +334,8 @@
                 <label id="modal-label">Текст сообщения / причины:</label>
                 <textarea id="modal-input" rows="4" placeholder="Введите текст..."></textarea>
             </div>
-            <button class="btn btn-primary" onclick="submitModalAction()">Отправить</button>
-            <button class="btn btn-secondary" onclick="closeModal()" style="margin-top:6px;">Отмена</button>
+            <button class="btn btn-primary" type="button" onclick="submitModalAction()">Отправить</button>
+            <button class="btn btn-secondary" type="button" onclick="closeModal()" style="margin-top:6px;">Отмена</button>
         </div>
     </div>
 
@@ -352,8 +348,8 @@
             <div class="form-group"><label>Комната:</label><input type="text" id="new-room" placeholder="412-Б"></div>
             <div class="form-group"><label>Виза до:</label><input type="date" id="new-visa"></div>
             <div class="form-group"><label>Регистрация до:</label><input type="date" id="new-reg"></div>
-            <button class="btn btn-success" onclick="saveNewStudent()">Сохранить</button>
-            <button class="btn btn-secondary" onclick="closeAddStudentModal()" style="margin-top:6px;">Отмена</button>
+            <button class="btn btn-success" type="button" onclick="saveNewStudent()">Сохранить</button>
+            <button class="btn btn-secondary" type="button" onclick="closeAddStudentModal()" style="margin-top:6px;">Отмена</button>
         </div>
     </div>
 
@@ -397,13 +393,28 @@
             }
         ];
 
-        let students = JSON.parse(localStorage.getItem('dorm_students')) || defaultStudents;
-        let currentUser = JSON.parse(localStorage.getItem('dorm_current_user')) || null; // {type: 'student'|'admin', id: number}
+        let students = [];
+        try {
+            const saved = localStorage.getItem('dorm_students');
+            students = saved ? JSON.parse(saved) : defaultStudents;
+            if (!Array.isArray(students) || students.length === 0) students = defaultStudents;
+        } catch (e) {
+            students = defaultStudents;
+        }
+
+        let currentUser = null;
+        try {
+            const savedUser = localStorage.getItem('dorm_current_user');
+            currentUser = savedUser ? JSON.parse(savedUser) : null;
+        } catch (e) {
+            currentUser = null;
+        }
+
         let currentModalAction = null;
 
         function initApp() {
             renderAuthSelect();
-            if (currentUser) {
+            if (currentUser && currentUser.type) {
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('main-app').classList.remove('hidden');
                 renderMain();
@@ -415,6 +426,7 @@
 
         function renderAuthSelect() {
             const select = document.getElementById('auth-student-select');
+            if (!select) return;
             select.innerHTML = '';
             students.forEach(s => {
                 let opt = document.createElement('option');
@@ -426,6 +438,10 @@
 
         function loginAsStudent() {
             const select = document.getElementById('auth-student-select');
+            if (!select || !select.value) {
+                alert('Выберите студента из списка!');
+                return;
+            }
             const studentId = parseInt(select.value);
             currentUser = { type: 'student', id: studentId };
             localStorage.setItem('dorm_current_user', JSON.stringify(currentUser));
@@ -433,14 +449,15 @@
         }
 
         function loginAsAdmin() {
-            const pin = document.getElementById('admin-pin').value;
-            if (pin === '7777') { // Секретный PIN коменданта
+            const pinInput = document.getElementById('admin-pin');
+            const pin = pinInput ? pinInput.value.trim() : '';
+            if (pin === '7777') {
                 currentUser = { type: 'admin', id: 0 };
                 localStorage.setItem('dorm_current_user', JSON.stringify(currentUser));
-                document.getElementById('admin-pin').value = '';
+                if (pinInput) pinInput.value = '';
                 initApp();
             } else {
-                alert('Неверный PIN-код коменданта!');
+                alert('Неверный PIN-код коменданта! (используйте 7777)');
             }
         }
 
@@ -448,10 +465,6 @@
             localStorage.removeItem('dorm_current_user');
             currentUser = null;
             initApp();
-        }
-
-        function scrollToAuthAdmin() {
-            logout();
         }
 
         function saveData() {
@@ -473,7 +486,7 @@
         function renderMain() {
             renderHonorBoard();
 
-            if (currentUser.type === 'admin') {
+            if (currentUser && currentUser.type === 'admin') {
                 document.getElementById('header-title').innerText = "Общежитие №4 — Панель Коменданта";
                 document.getElementById('view-student').classList.add('hidden');
                 document.getElementById('view-admin').classList.remove('hidden');
@@ -515,14 +528,4 @@
             } else if (diffDays <= 7) {
                 alertBox.innerHTML = `<div class="status-badge warning" style="width:100%; text-align:center; padding:8px;">⚠️ Регистрация истекает через ${diffDays} дн. (${s.reg})</div>`;
             } else {
-                alertBox.innerHTML = `<span style="color:var(--success); font-size:0.85rem;">✅ Документы в порядке</span>`;
-            }
-
-            const msgCont = document.getElementById('s-messages-container');
-            msgCont.innerHTML = s.messages.length ? '' : '<span style="color:var(--text-sec); font-size:0.85rem;">Нет новых сообщений</span>';
-            s.messages.forEach(m => {
-                msgCont.innerHTML += `<div class="message-box">${m}</div>`;
-            });
-
-            const punCont = document.getElementById('s-punishments-container');
-     
+                alertBox.innerHTML = `<span style="color:var(--success); font-size:0.85rem;"
